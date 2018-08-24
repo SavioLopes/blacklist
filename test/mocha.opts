@@ -2,3 +2,4 @@
 --ui bdd
 --recursive
 --exit
+--timeout 10000

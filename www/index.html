@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Blacklist</title>
+  </head>
+  <body>
+      <dialog id="favDialogIncluir">
+        <form method="dialog">
+            <p><label>FREE</label></p>
+          <menu>
+            <button id='buttonIncluir'>Incluir na Blacklist</button>
+          </menu>
+        </form>
+      </dialog>
+      <dialog id="favDialogRemover">
+          <form method="dialog">
+              <p><label>BLOCK</label></p>
+            <menu>
+              <button id='buttonRemover'>Remover da Blacklist</button>
+            </menu>
+          </form>
+      </dialog>
+      <menu>
+        Informe o cpf: <input type="text" name="search" id="search">
+        <button id="getStatus">Pesquisar</button>
+      </menu>
+  </body>
+  <script>
+    (function() {
+      var updateButton = document.getElementById('getStatus');
+      var favDialog = document.getElementById('favDialogIncluir');
+      var buttonIncluir = document.getElementById('buttonIncluir');
+      var buttonRemover = document.getElementById('buttonRemover');
+
+      updateButton.addEventListener('click', function() {
+        return httpGet();
+      });
+      buttonIncluir.addEventListener('click', function() {
+        return httpPost();
+      });
+      buttonRemover.addEventListener('click', function() {
+        return httpDelete();
+      });
+    })();
+
+    function httpPost() {
+      var cpf = document.getElementById("search").value;
+      var url = 'http://localhost:3000/cpf/blacklist';
+      var xmlHttp = new XMLHttpRequest();
+      try {
+        xmlHttp.open("POST", url, false);
+        xmlHttp.setRequestHeader("Content-Type", "application/json");
+        xmlHttp.send(JSON.stringify({ cpf: cpf }));
+
+        if (xmlHttp.status == '409') {
+          return alert('CPF já esta na Blacklist!');
+        }
+        if (xmlHttp.status == '400') {
+          return alert('CPF inválido!');
+        }
+        if (xmlHttp.status == '201') {
+          return alert('CPF incluido com sucesso!');
+        }
+        return alert('Erro ao incluir cpf. Status:' + xmlHttp.status);
+      } catch (e) {
+        alert('Erro Interno: ' + e);
+      }
+    }
+    function httpDelete() {
+      var cpf = document.getElementById("search").value;
+      var url = 'http://localhost:3000/cpf/' + cpf;
+      var xmlHttp = new XMLHttpRequest();
+
+      try {
+        xmlHttp.open("DELETE", url, false);
+        xmlHttp.send(null);
+
+        if (xmlHttp.status == '400') {
+          return alert('CPF inválido!');
+        }
+        if (xmlHttp.status == '200') {
+          return alert('CPF removido com sucesso!');
+        }
+        if (xmlHttp.status == '204') {
+          return alert('CPF não encontrado!');
+        }
+        return alert('Erro ao remover CPF da blacklist. Status=' + xmlHttp.status);
+      } catch (e) {
+        alert('Erro Interno: ' + e);
+      }
+    }
+    function httpGet() {
+      var cpf = document.getElementById("search").value;      
+      var url = 'http://localhost:3000/cpf/' + cpf + '/status';
+      var xmlHttp = new XMLHttpRequest();
+
+      try {
+        xmlHttp.open("GET", url, false);
+        xmlHttp.send();
+        if (xmlHttp.status == '400') {
+          return alert('CPF inválido!');
+        }
+        if (xmlHttp.status == '200') {
+          var favDialogRemover = document.getElementById('favDialogRemover');
+          favDialogRemover.showModal();
+          return;
+        }
+        if (xmlHttp.status == '204') {
+          var favDialogIncluir = document.getElementById('favDialogIncluir');
+          favDialogIncluir.showModal();
+          return;
+        }
+        return alert('Erro ao consultar CPF. Status=' + xmlHttp.status);
+      } catch (e) {
+        alert('Erro Interno: ' + e);
+      }
+    }
+  </script>
+</html>
